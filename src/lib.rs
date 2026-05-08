@@ -27,14 +27,20 @@
 //! # Modules
 //!
 //! - [`seal`] — `compute_seal`, `verify_seal`, `check_seal`, [`SealStatus`]
+//!   (Tier 1: HMAC-SHA256 oracle)
+//! - [`ed25519`] — `generate_keypair`, `sign`, `verify`, JWK serialization
+//!   (Tier 2: asymmetric Ed25519 for offline verification, added in v0.2.0)
 //! - [`key`] — [`load_or_generate_seal_key`]
 //! - [`trust`] — [`TrustLevel`] enum (MGP §2)
 //!
-//! Top-level re-exports are provided for the common API surface.
+//! Top-level re-exports are provided for the common HMAC API surface. The
+//! Ed25519 surface is intentionally namespaced — `mgp_seal::ed25519::sign`
+//! reads more clearly at call sites than a flat `mgp_seal::sign`.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod ed25519;
 pub mod key;
 pub mod seal;
 pub mod trust;

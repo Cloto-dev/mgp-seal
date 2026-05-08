@@ -1,7 +1,7 @@
 # mgp-seal
 
-Reference implementation of **MGP §8 L0 Magic Seal** — HMAC-SHA256 binary
-integrity verification for the [Magic Gateway Protocol](https://github.com/Cloto-dev/mgp-spec).
+Reference implementation of **MGP §8 L0 Magic Seal** — HMAC-SHA256 + Ed25519
+binary integrity verification for the [Magic Gateway Protocol](https://github.com/Cloto-dev/mgp-spec).
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -13,6 +13,12 @@ its file contents using a per-installation key. At startup the kernel verifies
 the seal and translates the result into a trust-level decision per
 [MGP §4.0](https://github.com/Cloto-dev/mgp-spec) (the v0.6.3 behavior matrix).
 
+Since v0.2.0 the crate also ships an Ed25519 module ([`mgp_seal::ed25519`])
+for **asymmetric** signing — the issuer (e.g. ClotoHub) holds the private key,
+verifiers (e.g. ClotoCore) only need the published public key, and verification
+works **offline** with no oracle round-trip. HMAC and Ed25519 are designed to
+be issued together for defense-in-depth.
+
 This crate is the canonical reference implementation, extracted from
 [ClotoCore](https://github.com/Cloto-dev/ClotoCore) so any MGP-compatible
 runtime — kernel, registry, or verification tooling — can share the same
@@ -22,7 +28,7 @@ cryptographic primitives.
 
 ```toml
 [dependencies]
-mgp-seal = { git = "https://github.com/Cloto-dev/mgp-seal", tag = "v0.1.0" }
+mgp-seal = { git = "https://github.com/Cloto-dev/mgp-seal", tag = "v0.2.0" }
 ```
 
 ## Quick start
@@ -45,6 +51,8 @@ fn main() -> anyhow::Result<()> {
 
 ## API
 
+### Tier 1 — HMAC (top-level)
+
 | Function / Type | Purpose |
 |---|---|
 | `compute_seal(file, key) -> "sha256:HEX"` | HMAC-SHA256 over file contents |
@@ -53,6 +61,35 @@ fn main() -> anyhow::Result<()> {
 | `SealStatus` | `Verified` / `Failed` / `Unsigned` / `Skipped` |
 | `TrustLevel` | `Untrusted < Experimental < Standard < Core` (§2) |
 | `load_or_generate_seal_key(data_dir)` | Env → file → fresh-random fallback |
+
+### Tier 2 — Ed25519 (`mgp_seal::ed25519`, since v0.2.0)
+
+| Function / Type | Purpose |
+|---|---|
+| `generate_keypair(rng) -> (PrivateKey, PublicKey)` | Fresh keypair from a CSPRNG |
+| `sign(&priv, &kid, msg) -> Signature` | Sign with domain-separated input |
+| `verify(&pub, &kid, msg, &sig) -> bool` | Offline verification |
+| `public_key_to_jwk(&pub, &kid)` | RFC 8037 OKP/Ed25519 JWK |
+| `private_key_from_base64(s)` | 12-factor env-var loading |
+| `PublicKey::{to_base64, from_base64}` | Out-of-band public-key publishing |
+| `Signature::{to_base64, from_base64}` | Wire-format encoding |
+| `KeyId::new(s)` | Stable id, bound into every signature |
+
+```rust
+use mgp_seal::ed25519::{generate_keypair, sign, verify, KeyId};
+use rand::rngs::OsRng;
+
+let (priv_key, pub_key) = generate_keypair(&mut OsRng);
+let kid = KeyId::new("clotohub-master-v1").unwrap();
+let sig = sign(&priv_key, &kid, b"connector=cpersona\nversion=1.2.3\n");
+assert!(verify(&pub_key, &kid, b"connector=cpersona\nversion=1.2.3\n", &sig));
+```
+
+Signatures are computed over
+`b"mgp-seal-ed25519-v1" || 0x00 || key_id || 0x00 || message` so every
+signature is bound to (a) this crate / version / use-case (preventing
+cross-protocol reuse) and (b) the `key_id` (preventing silent re-attribution
+in a JWKS keyring).
 
 ## Seal absent: §4.0 (v0.6.3) behavior matrix
 
