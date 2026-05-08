@@ -6,6 +6,15 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Repository renamed `Cloto-dev/mgp-seal` → `Cloto-dev/mgp-rs` and converted
+  to a `cargo workspace`. Sources moved from the repo root to
+  `crates/mgp-seal/`. Existing `v0.1.0` and `v0.2.0` tags continue to point
+  at the pre-rename top-level layout — consumers pinning either tag keep
+  working unchanged via GitHub auto-redirect.
+- Future releases use the per-crate tag namespace `mgp-seal-vX.Y.Z`.
+
 ## [0.2.0] - 2026-05-08
 
 ### Added
