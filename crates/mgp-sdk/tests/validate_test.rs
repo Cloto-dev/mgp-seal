@@ -1,0 +1,132 @@
+//! Validation tests for `cloto-connector.json` v1.
+
+use mgp_sdk::adapters::{GitSpec, SourceSpec};
+use mgp_sdk::types::{ConnectorManifest, InstallSpec};
+use mgp_sdk::validate::{validate_v1, ValidationError};
+
+fn good_manifest() -> ConnectorManifest {
+    ConnectorManifest {
+        spec_version: 1,
+        connector_type: "mgp_server".to_string(),
+        id: "demo-server".to_string(),
+        name: "Demo".to_string(),
+        description: "demo".to_string(),
+        version: "0.1.0".to_string(),
+        category: "test".to_string(),
+        trust_level: "standard".to_string(),
+        magic_seal: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+            .to_string(),
+        install: InstallSpec {
+            source: SourceSpec::Git(GitSpec {
+                url: "https://github.com/Cloto-dev/demo.git".to_string(),
+                reference: String::new(),
+                subdir: None,
+            }),
+            package_manager: "uv".to_string(),
+            runtime: "python".to_string(),
+            dependencies: vec![],
+            directory: "demo".to_string(),
+            bin_name: None,
+        },
+        icon: None,
+        tags: vec![],
+        host_compatibility: vec![],
+        env_vars: vec![],
+        optional_env_vars: vec![],
+        auto_restart: false,
+        changelog: None,
+    }
+}
+
+#[test]
+fn valid_v1_manifest_passes() {
+    assert!(validate_v1(&good_manifest()).is_ok());
+}
+
+#[test]
+fn rejects_wrong_spec_version() {
+    let mut m = good_manifest();
+    m.spec_version = 2;
+    assert_eq!(
+        validate_v1(&m),
+        Err(ValidationError::UnsupportedSpecVersion(2))
+    );
+}
+
+#[test]
+fn rejects_wrong_connector_type() {
+    let mut m = good_manifest();
+    m.connector_type = "skill".to_string();
+    assert_eq!(
+        validate_v1(&m),
+        Err(ValidationError::UnsupportedConnectorType(
+            "skill".to_string()
+        ))
+    );
+}
+
+#[test]
+fn rejects_malformed_magic_seal() {
+    let mut m = good_manifest();
+    m.magic_seal = "not-a-seal".to_string();
+    assert_eq!(validate_v1(&m), Err(ValidationError::MalformedMagicSeal));
+    m.magic_seal = "sha256:tooshort".to_string();
+    assert_eq!(validate_v1(&m), Err(ValidationError::MalformedMagicSeal));
+}
+
+#[test]
+fn rejects_non_uv_package_manager() {
+    let mut m = good_manifest();
+    m.install.package_manager = "pip".to_string();
+    assert_eq!(
+        validate_v1(&m),
+        Err(ValidationError::UnsupportedPackageManager(
+            "pip".to_string()
+        ))
+    );
+}
+
+#[test]
+fn rejects_unknown_runtime() {
+    let mut m = good_manifest();
+    m.install.runtime = "ruby".to_string();
+    assert_eq!(
+        validate_v1(&m),
+        Err(ValidationError::UnsupportedRuntime("ruby".to_string()))
+    );
+}
+
+#[test]
+fn rejects_unknown_trust_level() {
+    let mut m = good_manifest();
+    m.trust_level = "elite".to_string();
+    assert_eq!(
+        validate_v1(&m),
+        Err(ValidationError::UnsupportedTrustLevel("elite".to_string()))
+    );
+}
+
+#[test]
+fn rejects_non_kebab_id() {
+    let mut m = good_manifest();
+    m.id = "Demo_Server".to_string();
+    assert_eq!(validate_v1(&m), Err(ValidationError::InvalidId));
+    m.id = String::new();
+    assert_eq!(validate_v1(&m), Err(ValidationError::InvalidId));
+    m.id = "-leading".to_string();
+    assert_eq!(validate_v1(&m), Err(ValidationError::InvalidId));
+}
+
+#[test]
+fn rejects_invalid_git_source() {
+    let mut m = good_manifest();
+    m.install.source = SourceSpec::Git(GitSpec {
+        url: String::new(),
+        reference: String::new(),
+        subdir: None,
+    });
+    assert!(matches!(
+        validate_v1(&m),
+        Err(ValidationError::InvalidSource { kind: "git", .. })
+    ));
+}

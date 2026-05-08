@@ -1,0 +1,30 @@
+[package]
+name = "mgp-seal"
+version = "0.2.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Reference implementation of MGP §8 L0 Magic Seal (HMAC-SHA256 + Ed25519 binary integrity verification)"
+documentation = "https://docs.rs/mgp-seal"
+readme = "README.md"
+keywords = ["mgp", "hmac", "ed25519", "mcp", "security"]
+categories = ["cryptography", "authentication"]
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+base64 = "0.22"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+hex = "0.4"
+hmac = "0.12"
+rand = "0.8"
+sha2 = "0.10"
+subtle = "2"
+
+[dev-dependencies]
+base64 = "0.22"
+rand = "0.8"
+tempfile = "3"

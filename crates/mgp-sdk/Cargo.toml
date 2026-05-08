@@ -1,0 +1,24 @@
+[package]
+name = "mgp-sdk"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Pure-logic SDK for MGP connectors: cloto-connector.json types, validation, source-spec adapters, and registry shape conversion"
+documentation = "https://docs.rs/mgp-sdk"
+readme = "README.md"
+keywords = ["mgp", "mcp", "connector", "marketplace", "clotohub"]
+categories = ["api-bindings", "config"]
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+url.workspace = true
+mgp-seal = { path = "../mgp-seal", version = "0.2.0" }
+
+[dev-dependencies]
+serde_json.workspace = true
