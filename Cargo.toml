@@ -1,0 +1,26 @@
+[package]
+name = "mgp-seal"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+description = "Reference implementation of MGP §8 L0 Magic Seal (HMAC-SHA256 binary integrity verification)"
+license = "MIT"
+repository = "https://github.com/Cloto-dev/mgp-seal"
+homepage = "https://github.com/Cloto-dev/mgp-seal"
+documentation = "https://docs.rs/mgp-seal"
+readme = "README.md"
+keywords = ["mgp", "hmac", "integrity", "mcp", "security"]
+categories = ["cryptography", "authentication"]
+
+[dependencies]
+anyhow = "1"
+hex = "0.4"
+hmac = "0.12"
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+subtle = "2"
+
+[dev-dependencies]
+serde_json = "1"
+tempfile = "3"

@@ -1,0 +1,44 @@
+//! Reference implementation of MGP §8 L0 Magic Seal.
+//!
+//! Magic Seal is the binary integrity layer of the MGP (Magic Gateway Protocol)
+//! security model. Each MGP server binary is sealed with an HMAC-SHA256 computed
+//! over its file contents using a per-installation key. At startup the kernel
+//! verifies the seal and translates the result into a trust-level decision per
+//! MGP §4.0 (the v0.6.3 behavior matrix).
+//!
+//! This crate is the canonical reference implementation, extracted from
+//! ClotoCore so that any MGP-compatible runtime — kernel, registry, or
+//! verification tooling — can share the same cryptographic primitives.
+//!
+//! # Quick start
+//!
+//! ```no_run
+//! use std::path::Path;
+//! use mgp_seal::{compute_seal, verify_seal, load_or_generate_seal_key};
+//!
+//! # fn main() -> anyhow::Result<()> {
+//! let key = load_or_generate_seal_key(Path::new("/var/lib/mgp"))?;
+//! let seal = compute_seal(Path::new("/usr/local/bin/my-mgp-server"), &key)?;
+//! assert!(verify_seal(Path::new("/usr/local/bin/my-mgp-server"), &seal, &key)?);
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! # Modules
+//!
+//! - [`seal`] — `compute_seal`, `verify_seal`, `check_seal`, [`SealStatus`]
+//! - [`key`] — [`load_or_generate_seal_key`]
+//! - [`trust`] — [`TrustLevel`] enum (MGP §2)
+//!
+//! Top-level re-exports are provided for the common API surface.
+
+#![forbid(unsafe_code)]
+#![warn(missing_docs)]
+
+pub mod key;
+pub mod seal;
+pub mod trust;
+
+pub use key::load_or_generate_seal_key;
+pub use seal::{check_seal, compute_seal, verify_seal, SealStatus};
+pub use trust::TrustLevel;
