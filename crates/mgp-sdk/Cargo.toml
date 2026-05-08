@@ -1,6 +1,6 @@
 [package]
 name = "mgp-sdk"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -18,7 +18,6 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 url.workspace = true
-mgp-seal = { path = "../mgp-seal", version = "0.2.0" }
 
 [dev-dependencies]
 serde_json.workspace = true

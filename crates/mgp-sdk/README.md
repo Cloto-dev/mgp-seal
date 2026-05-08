@@ -31,8 +31,11 @@ schema document (lives in `mgp-spec`, this crate is a consumer).
 
 ## Relation to `mgp-seal`
 
-Sibling crate in the same `mgp-rs` workspace. `mgp-sdk` depends on
-`mgp-seal` for Magic Seal verification helpers. Versioned
+Sibling crate in the same `mgp-rs` workspace. A future `mgp-sdk`
+release (tracked for v0.2.0) will depend on `mgp-seal` to expose
+Magic Seal verification helpers; v0.1.x deliberately ships without
+that dependency so consumers that only need the manifest types and
+validation layer get a minimal dependency graph. Versioned
 independently per crate (tag namespaces: `mgp-seal-vX.Y.Z`,
 `mgp-sdk-vX.Y.Z`).
 

@@ -6,6 +6,19 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-09
+
+### Removed
+
+- Dropped the `mgp-seal` dependency that v0.1.0 carried in
+  anticipation of Magic Seal verification helpers — those helpers
+  did not land in v0.1.0, and the unused dep caused downstream
+  consumers (e.g. `clotohub-web`) that also depend on `mgp-seal`
+  directly to compile two source-distinct copies of `mgp-seal` at
+  the same commit because cargo treats `?tag=mgp-sdk-vX.Y.Z` and
+  `?tag=mgp-seal-vX.Y.Z` as separate sources. The dep will return
+  in v0.2.0 alongside the helpers.
+
 ## [0.1.0] - 2026-05-08
 
 ### Added
