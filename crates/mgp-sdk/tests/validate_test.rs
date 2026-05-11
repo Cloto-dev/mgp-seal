@@ -75,6 +75,20 @@ fn rejects_malformed_magic_seal() {
 }
 
 #[test]
+fn rejects_uppercase_and_mixed_case_magic_seal() {
+    // `mgp_seal::compute_seal` emits lowercase hex; `verify_seal` does a
+    // byte-exact comparison. Uppercase or mixed-case seals can never verify,
+    // so the validator MUST reject them at format-check time.
+    let mut m = good_manifest();
+    m.magic_seal = format!("sha256:{}", "A".repeat(64));
+    assert_eq!(validate_v1(&m), Err(ValidationError::MalformedMagicSeal));
+    m.magic_seal = format!("sha256:aA{}", "0".repeat(62));
+    assert_eq!(validate_v1(&m), Err(ValidationError::MalformedMagicSeal));
+    m.magic_seal = format!("sha256:{}F", "0".repeat(63));
+    assert_eq!(validate_v1(&m), Err(ValidationError::MalformedMagicSeal));
+}
+
+#[test]
 fn rejects_non_uv_package_manager() {
     let mut m = good_manifest();
     m.install.package_manager = "pip".to_string();

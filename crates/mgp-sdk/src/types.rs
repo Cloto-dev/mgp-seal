@@ -27,7 +27,8 @@ pub struct ConnectorManifest {
     pub category: String,
     /// MGP §2.3 trust tier: `core | standard | experimental | untrusted`.
     pub trust_level: String,
-    /// MGP §8 L0 Magic Seal in `sha256:HEX` form. Required at registration.
+    /// MGP §8 L0 Magic Seal in `sha256:<hex>` form (64 lowercase hex chars).
+    /// Required at registration.
     pub magic_seal: String,
     /// Install/runtime declaration.
     pub install: InstallSpec,

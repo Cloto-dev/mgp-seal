@@ -16,7 +16,7 @@ pub enum ValidationError {
     #[error("unsupported connector_type: expected `mgp_server`, got `{0}`")]
     UnsupportedConnectorType(String),
     /// `magic_seal` missing or malformed.
-    #[error("magic_seal must be `sha256:HEX` (64 hex chars)")]
+    #[error("magic_seal must be `sha256:<hex>` with 64 lowercase hex chars")]
     MalformedMagicSeal,
     /// `package_manager` not `uv`.
     #[error("package_manager must be `uv`, got `{0}`")]
