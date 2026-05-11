@@ -77,8 +77,16 @@ fn is_kebab_case_id(id: &str) -> bool {
 }
 
 fn is_well_formed_seal(seal: &str) -> bool {
+    // Lowercase hex only — `mgp_seal::compute_seal` emits `hex::encode(...)`
+    // which is lowercase, and `verify_seal` does a byte-exact comparison.
+    // An uppercase or mixed-case seal can never verify, so accepting it at
+    // the validator layer would only let a latent bug propagate.
     let Some(hex) = seal.strip_prefix("sha256:") else {
         return false;
     };
-    hex.len() == 64 && hex.chars().all(|c| c.is_ascii_hexdigit())
+    hex.len() == 64 && hex.chars().all(is_lowercase_hex_digit)
+}
+
+fn is_lowercase_hex_digit(c: char) -> bool {
+    c.is_ascii_digit() || matches!(c, 'a'..='f')
 }

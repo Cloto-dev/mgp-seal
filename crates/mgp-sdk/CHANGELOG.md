@@ -6,6 +6,28 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-11
+
+### Changed
+
+- `validate::validate_v1` now rejects `magic_seal` values containing
+  uppercase hex characters. `mgp_seal::compute_seal` emits lowercase
+  hex (via `hex::encode`) and `verify_seal` does a byte-exact
+  comparison, so an uppercase or mixed-case seal can never verify.
+  Previously the format check used `is_ascii_hexdigit` and accepted
+  inputs that would silently fail at verify time, masking the bug
+  until the connector was actually loaded. This tightens the
+  format-check layer to match the operational truth and aligns the
+  SDK with the `cloto-connector.json` v1 JSON Schema
+  (`mgp-spec/schemas/connector/v1.json`).
+
+  No behavior change for inputs that any consumer was correctly
+  using: every seal that `mgp_seal::compute_seal` ever produced is
+  lowercase, every example in `MGP_ISOLATION_DESIGN.md` is
+  lowercase, and every catalog fixture in `clotohub-web` is
+  lowercase. Treated as a bug fix; downstream pins MAY stay on
+  `0.1` (no API change).
+
 ## [0.1.1] - 2026-05-09
 
 ### Removed
