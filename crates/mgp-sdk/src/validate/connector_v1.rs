@@ -87,6 +87,6 @@ fn is_well_formed_seal(seal: &str) -> bool {
     hex.len() == 64 && hex.chars().all(is_lowercase_hex_digit)
 }
 
-const fn is_lowercase_hex_digit(c: char) -> bool {
+fn is_lowercase_hex_digit(c: char) -> bool {
     c.is_ascii_digit() || matches!(c, 'a'..='f')
 }
