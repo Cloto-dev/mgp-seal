@@ -8,4 +8,4 @@
 
 mod registry;
 
-pub use registry::{manifest_to_registry_entry, RegistryEntry};
+pub use registry::{manifest_to_registry_entry, InstallShape, RegistryEntry};
