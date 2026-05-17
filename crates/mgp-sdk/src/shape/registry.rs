@@ -1,9 +1,13 @@
 //! Conversion of [`ConnectorManifest`] into the `registry.json` entry
-//! shape that ClotoCore already consumes today.
+//! shape that ClotoCore consumes.
 //!
-//! This intentionally **mirrors** ClotoCore's `RegistryEntry` field
-//! layout. Keep the two in lock-step until ClotoCore migrates to
-//! importing this type directly (post Phase 5c cutover).
+//! Post Phase 5c cutover (ClotoCore PR #121 — `refactor(marketplace):
+//! cut RegistryEntry/EnvVarDef over to mgp-sdk v0.2.0`), ClotoCore
+//! imports [`RegistryEntry`] / [`InstallShape`] from this module
+//! directly (`pub use mgp_sdk::shape::{RegistryEntry, InstallShape}`).
+//! There is no longer a parallel definition to keep in lock-step —
+//! this module is the single source of truth for the catalog entry
+//! wire shape, and future schema changes land here.
 
 use crate::adapters::SourceSpec;
 use crate::types::{ConnectorManifest, EnvVarDef};
