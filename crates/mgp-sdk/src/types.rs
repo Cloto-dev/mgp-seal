@@ -77,10 +77,23 @@ pub struct InstallSpec {
 }
 
 /// Environment variable contract entry.
+///
+/// `name` deserialization accepts the legacy field name `key` as an alias to
+/// preserve compatibility with pre-v1 registry shapes (notably the legacy
+/// `cloto-mcp-servers/registry.json` wire which emits `key` rather than
+/// `name`). The alias is implementation-side leniency only — see MGP_CONNECTOR
+/// §2 (Authority and Drift Policy); the (α) implementation-cost-leniency
+/// taxonomy applies. Producers MUST emit `name`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EnvVarDef {
-    /// Variable name.
+    /// Variable name. Spec-level canonical key.
+    #[serde(alias = "key")]
     pub name: String,
+    /// Default value the host SHOULD inject when the operator has not
+    /// supplied one. Hosts MUST still treat the variable as set for
+    /// downstream contracts when defaulted. `None` means no default.
+    #[serde(default)]
+    pub default: Option<String>,
     /// Human description.
     #[serde(default)]
     pub description: Option<String>,

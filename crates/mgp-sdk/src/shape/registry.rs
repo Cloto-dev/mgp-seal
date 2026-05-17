@@ -5,8 +5,43 @@
 //! layout. Keep the two in lock-step until ClotoCore migrates to
 //! importing this type directly (post Phase 5c cutover).
 
+use crate::adapters::SourceSpec;
 use crate::types::{ConnectorManifest, EnvVarDef};
 use serde::{Deserialize, Serialize};
+
+/// Install descriptor carried by [`RegistryEntry`].
+///
+/// Mirrors the shape of `ConnectorManifest.install` for the two fields that
+/// the catalog must surface to install consumers (`source` and
+/// `package_manager`) without duplicating the install fields that already
+/// have flat top-level homes on `RegistryEntry` (`directory`, `runtime`,
+/// `bin_name`, `dependencies`).
+///
+/// `RegistryEntry.install` is `Option<InstallShape>` because:
+///
+/// - Pre-v0.2 registry.json files (notably `Cloto-dev/cloto-mcp-servers/
+///   registry.json`) do not carry an `install` block — they predate the
+///   `cloto-connector.json` v1 schema and let the consumer infer a single
+///   global tarball source. `None` triggers that legacy behavior on the
+///   consumer side (= ClotoCore's `run_install` falls back to its existing
+///   monorepo tarball path).
+/// - New registries (catalog feeds emitted by `clotohub-web` from
+///   `cloto-connector.json` manifests) include `install` with the source
+///   honored from the manifest. Consumers branch on
+///   `entry.install.as_ref().map(|i| &i.source)` to pick `git` / `raw_url`
+///   / `pypi` / `docker`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InstallShape {
+    /// Source descriptor for materializing the connector — see
+    /// [`crate::adapters::SourceSpec`].
+    pub source: SourceSpec,
+    /// Package manager used to materialize the connector. v1 only accepts
+    /// `"uv"`; carried as `Option<String>` so registries that omit the
+    /// field (or future versions that broaden the vocabulary) can still
+    /// round-trip.
+    #[serde(default)]
+    pub package_manager: Option<String>,
+}
 
 /// Single entry in the catalog `registry.json` file.
 ///
@@ -61,6 +96,14 @@ pub struct RegistryEntry {
     /// MGP §8 L0 Magic Seal in `sha256:HEX` form.
     #[serde(default)]
     pub seal: Option<String>,
+    /// Optional install descriptor carrying `source` and `package_manager`
+    /// from the originating `cloto-connector.json` manifest. `None` (or
+    /// absent in JSON) signals that the catalog has no per-entry source
+    /// information, and consumers SHOULD fall back to whatever default
+    /// install path they previously used (e.g. ClotoCore's hard-coded
+    /// monorepo tarball). New for `mgp-sdk` v0.2.0; see [`InstallShape`].
+    #[serde(default)]
+    pub install: Option<InstallShape>,
 }
 
 fn default_trust_level() -> String {
@@ -98,5 +141,13 @@ pub fn manifest_to_registry_entry(m: &ConnectorManifest) -> RegistryEntry {
         bin_name: m.install.bin_name.clone(),
         changelog: m.changelog.clone(),
         seal: Some(m.magic_seal.clone()),
+        // New in v0.2.0: carry through the install source + package_manager.
+        // The flat `directory` / `runtime` / `bin_name` / `dependencies`
+        // fields above stay populated for backward compatibility with
+        // consumers that have not yet migrated to reading `install.source`.
+        install: Some(InstallShape {
+            source: m.install.source.clone(),
+            package_manager: Some(m.install.package_manager.clone()),
+        }),
     }
 }
